@@ -1349,7 +1349,6 @@ impl ToWgslString for MatrixValue {
     }
 }
 
-
 impl From<Mat3> for MatrixValue {
     fn from(value: Mat3) -> Self {
         let mut s = Self {
