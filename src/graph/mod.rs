@@ -46,6 +46,7 @@ use bevy::{
     reflect::Reflect,
     utils::FloatOrd,
 };
+use bevy::math::Mat3;
 use serde::{Deserialize, Serialize};
 
 use crate::{MatrixType, ScalarType, ToWgslString, ValueType, VectorType};
@@ -1336,12 +1337,27 @@ impl ToWgslString for MatrixValue {
         );
         for j in 0..self.matrix_type.cols() {
             for i in 0..self.matrix_type.rows() {
+                if j == 0 && i == 0 {
+                    continue;
+                }
                 vals.push(',');
                 vals.push_str(&self.value(i, j).to_wgsl_string());
             }
         }
         vals.push(')');
         vals
+    }
+}
+
+
+impl From<Mat3> for MatrixValue {
+    fn from(value: Mat3) -> Self {
+        let mut s = Self {
+            matrix_type: MatrixType::MAT3X3F,
+            storage: [0.; 16],
+        };
+        value.write_cols_to_slice(&mut s.storage);
+        s
     }
 }
 
@@ -1656,6 +1672,10 @@ mod tests {
             Value::Vector(BVec4::TRUE.into()).value_type(),
             ValueType::Vector(VectorType::VEC4B)
         );
+        assert_eq!(
+            Value::Matrix(Mat3::IDENTITY.into()).value_type(),
+            ValueType::Matrix(MatrixType::MAT3X3F)
+        );
     }
 
     #[test]
@@ -1712,6 +1732,10 @@ mod tests {
         ] {
             assert_eq!(Value::Vector(v.into()).to_wgsl_string(), v.to_wgsl_string());
         }
+        assert_eq!(
+            Value::Matrix(Mat3::IDENTITY.into()).to_wgsl_string(),
+            "mat3x3<f32>(1.,0.,0.,0.,1.,0.,0.,0.,1.)"
+        )
     }
 
     #[test]
@@ -1916,7 +1940,7 @@ mod tests {
         );
         assert_eq!(
             calc_hash(&Into::<VectorValue>::into(Vec4::new(
-                3.5, -42., 999.99, -0.01
+                3.5, -42., 999.99, -0.01,
             ))),
             calc_f32_vector_hash(VectorType::VEC4F, &[3.5, -42., 999.99, -0.01])
         );

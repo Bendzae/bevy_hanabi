@@ -1928,7 +1928,7 @@ impl std::ops::Div<WriterExpr> for WriterExpr {
 
 #[cfg(test)]
 mod tests {
-    use crate::{prelude::Property, InitContext, ScalarValue, VectorType};
+    use crate::{prelude::Property, InitContext, ScalarValue, VectorType, MatrixValue};
 
     use super::*;
     use bevy::prelude::*;
@@ -2012,6 +2012,28 @@ mod tests {
     }
 
     #[test]
+    fn matrix_times_vector() {
+        let mut m = Module::default();
+
+        let x = m.lit(MatrixValue::from(Mat3::IDENTITY));
+        let y = m.lit(Vec3::ONE);
+
+        let mul = m.mul(x, y);
+
+        let property_layout = PropertyLayout::default();
+        let particle_layout = ParticleLayout::default();
+        let ctx = InitContext::new(&mut m, &property_layout, &particle_layout);
+
+        let expr = ctx.eval(mul);
+        assert!(expr.is_ok());
+        let expr = expr.unwrap();
+        assert_eq!(
+            expr,
+            "(mat3x3<f32>(1.,0.,0.,0.,1.,0.,0.,0.,1.)) * (vec3<f32>(1.,1.,1.))",
+        );
+    }
+
+    #[test]
     fn builtin_expr() {
         let mut m = Module::default();
 
@@ -2092,7 +2114,7 @@ mod tests {
             let expr = ctx.eval(expr);
             assert!(expr.is_ok());
             let expr = expr.unwrap();
-            assert_eq!(expr, format!("{}({})", op, inner,));
+            assert_eq!(expr, format!("{}({})", op, inner, ));
         }
     }
 
