@@ -525,6 +525,7 @@ pub trait RenderModifier: Modifier {
 // pub(crate) use impl_mod_init;
 
 /// Macro to implement the [`Modifier`] trait for an update modifier.
+#[macro_export]
 macro_rules! impl_mod_update {
     ($t:ty, $attrs:expr) => {
         #[typetag::serde]
@@ -552,10 +553,11 @@ macro_rules! impl_mod_update {
     };
 }
 
-pub(crate) use impl_mod_update;
+pub use impl_mod_update;
 
 /// Macro to implement the [`Modifier`] trait for a modifier which can be used
 /// both in init and update contexts.
+#[macro_export]
 macro_rules! impl_mod_init_update {
     ($t:ty, $attrs:expr) => {
         #[typetag::serde]
@@ -591,9 +593,10 @@ macro_rules! impl_mod_init_update {
     };
 }
 
-pub(crate) use impl_mod_init_update;
+pub use impl_mod_init_update;
 
 /// Macro to implement the [`Modifier`] trait for a render modifier.
+#[macro_export]
 macro_rules! impl_mod_render {
     ($t:ty, $attrs:expr) => {
         #[typetag::serde]
@@ -621,7 +624,7 @@ macro_rules! impl_mod_render {
     };
 }
 
-pub(crate) use impl_mod_render;
+pub use impl_mod_render;
 
 #[cfg(test)]
 mod tests {
