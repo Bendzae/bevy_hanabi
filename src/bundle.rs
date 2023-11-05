@@ -53,7 +53,8 @@ pub struct ParticleEffectBundle {
     /// required by Bevy's built-in visibility system.
     ///
     /// [`SimulationCondition::Always`]: crate::SimulationCondition::Always
-    pub computed_visibility: ComputedVisibility,
+    pub inherited_visibility: InheritedVisibility,
+    pub view_visibility: ViewVisibility,
 }
 
 impl Default for ParticleEffectBundle {
@@ -71,7 +72,8 @@ impl ParticleEffectBundle {
             transform: Default::default(),
             global_transform: Default::default(),
             visibility: Default::default(),
-            computed_visibility: Default::default(),
+            inherited_visibility: Default::default(),
+            view_visibility: Default::default(),
         }
     }
 
@@ -92,7 +94,7 @@ impl ParticleEffectBundle {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bevy::{asset::HandleId, reflect::TypeUuid};
+    use bevy::{asset::AssetId, reflect::TypeUuid};
 
     #[test]
     fn bundle_default() {
@@ -103,7 +105,7 @@ mod tests {
 
     #[test]
     fn bundle_new() {
-        let handle = Handle::weak(HandleId::new(EffectAsset::TYPE_UUID, 42));
+        let handle = Handle::weak(AssetId::new(EffectAsset::TYPE_UUID, 42));
         let bundle = ParticleEffectBundle::new(handle.clone());
         assert_eq!(bundle.effect.handle, handle);
     }

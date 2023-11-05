@@ -1,7 +1,7 @@
 #[cfg(feature = "2d")]
 use bevy::utils::FloatOrd;
 use bevy::{
-    asset::{AssetEvent, Assets, Handle, HandleId},
+    asset::{AssetEvent, Assets, Handle, AssetId},
     core::{Pod, Zeroable},
     ecs::{
         prelude::*,
@@ -18,7 +18,7 @@ use bevy::{
         renderer::{RenderContext, RenderDevice, RenderQueue},
         texture::{BevyDefault, Image},
         view::{
-            ComputedVisibility, ExtractedView, Msaa, ViewTarget, ViewUniform, ViewUniformOffset,
+            ExtractedView, Msaa, ViewTarget, ViewUniform, ViewUniformOffset,
             ViewUniforms, VisibleEntities,
         },
         Extract,
@@ -34,6 +34,7 @@ use std::{
     borrow::Cow,
     num::{NonZeroU32, NonZeroU64},
 };
+use bevy::asset::UntypedAssetId;
 
 #[cfg(feature = "2d")]
 use bevy::core_pipeline::core_2d::Transparent2d;
@@ -883,7 +884,7 @@ pub(crate) struct ParticleRenderPipelineKey {
 impl Default for ParticleRenderPipelineKey {
     fn default() -> Self {
         Self {
-            shader: Handle::weak(HandleId::new(Uuid::nil(), u64::MAX)),
+            shader: Handle::weak(AssetId::new(Uuid::nil(), u64::MAX)),
             particle_layout: ParticleLayout::empty(),
             has_image: false,
             screen_space_size: false,
@@ -1039,7 +1040,7 @@ impl SpecializedRenderPipeline for ParticlesRenderPipeline {
         }
 
         #[cfg(all(feature = "2d", feature = "3d"))]
-        let depth_stencil = match key.pipeline_mode {
+            let depth_stencil = match key.pipeline_mode {
             // Bevy's Transparent2d render phase doesn't support a depth-stencil buffer.
             PipelineMode::Camera2d => None,
             PipelineMode::Camera3d => Some(DepthStencilState {
@@ -1053,10 +1054,10 @@ impl SpecializedRenderPipeline for ParticlesRenderPipeline {
         };
 
         #[cfg(all(feature = "2d", not(feature = "3d")))]
-        let depth_stencil: Option<DepthStencilState> = None;
+            let depth_stencil: Option<DepthStencilState> = None;
 
         #[cfg(all(feature = "3d", not(feature = "2d")))]
-        let depth_stencil = Some(DepthStencilState {
+            let depth_stencil = Some(DepthStencilState {
             format: TextureFormat::Depth32Float,
             depth_write_enabled: false,
             // Bevy uses reverse-Z, so Greater really means closer
@@ -1149,7 +1150,7 @@ pub(crate) struct ExtractedEffect {
     /// Layout flags.
     pub layout_flags: LayoutFlags,
     /// Texture to modulate the particle color.
-    pub image_handle_id: HandleId,
+    pub image_handle_id: UntypedAssetId,
     /// Effect shader.
     pub effect_shader: EffectShader,
     /// For 2D rendering, the Z coordinate used as the sort key. Ignored for 3D
@@ -1341,8 +1342,8 @@ pub(crate) fn extract_effects(
         // Check if hidden, unless always simulated
         if effect.simulation_condition == SimulationCondition::WhenVisible
             && !maybe_computed_visibility
-                .map(|cv| cv.is_visible())
-                .unwrap_or(true)
+            .map(|cv| cv.is_visible())
+            .unwrap_or(true)
         {
             continue;
         }
@@ -1361,7 +1362,7 @@ pub(crate) fn extract_effects(
         };
 
         #[cfg(feature = "2d")]
-        let z_sort_key_2d = effect.z_layer_2d;
+            let z_sort_key_2d = effect.z_layer_2d;
 
         let image_handle_id = effect
             .particle_texture
@@ -1446,13 +1447,13 @@ impl GpuLimits {
             GpuDispatchIndirect::min_size().get() as usize,
             storage_buffer_align as usize,
         ) as u32)
-        .unwrap();
+            .unwrap();
 
         let render_indirect_aligned_size = NonZeroU32::new(next_multiple_of(
             GpuRenderIndirect::min_size().get() as usize,
             storage_buffer_align as usize,
         ) as u32)
-        .unwrap();
+            .unwrap();
 
         trace!(
             "GpuLimits: storage_buffer_align={} gpu_dispatch_indirect_aligned_size={} gpu_render_indirect_aligned_size={}",
@@ -1928,8 +1929,9 @@ pub(crate) fn prepare_effects(
                     transform: input.transform,
                     inverse_transform: input.inverse_transform,
                     spawn: input.spawn_count as i32,
-                    seed: random::<u32>(), /* FIXME - Probably bad to re-seed each time there's a
-                                            * change */
+                    seed: random::<u32>(),
+                    /* FIXME - Probably bad to re-seed each time there's a
+                                                               * change */
                     count: 0,
                     effect_index: input.effect_slice.group_index,
                     force_field: input.force_field.map(Into::into),
@@ -2304,8 +2306,9 @@ pub(crate) fn queue_effects(
                 resource: effects_meta.sim_params_uniforms.binding().unwrap(),
             }],
             label: Some("hanabi:bind_group_sim_params"),
-            layout: &read_params.update_pipeline.sim_params_layout, /* FIXME - Shared with
-                                                                     * vfx_update, is that OK? */
+            layout: &read_params.update_pipeline.sim_params_layout,
+            /* FIXME - Shared with
+                                                                                * vfx_update, is that OK? */
         }));
 
     // Create the bind group for the spawner parameters
@@ -2331,8 +2334,9 @@ pub(crate) fn queue_effects(
             }),
         }],
         label: Some("hanabi:bind_group_spawner_buffer"),
-        layout: &read_params.update_pipeline.spawner_buffer_layout, /* FIXME - Shared with init,
-                                                                     * is that OK? */
+        layout: &read_params.update_pipeline.spawner_buffer_layout,
+        /* FIXME - Shared with init,
+                                                                            * is that OK? */
     }));
 
     // Create the bind group for the indirect dispatch of all effects
@@ -2554,7 +2558,7 @@ pub(crate) fn queue_effects(
                     batch_range: None,
                 },
                 #[cfg(feature = "3d")]
-                PipelineMode::Camera2d,
+                    PipelineMode::Camera2d,
                 false,
             );
         }
@@ -2590,7 +2594,7 @@ pub(crate) fn queue_effects(
                     distance: 0.0, // TODO
                 },
                 #[cfg(feature = "2d")]
-                PipelineMode::Camera3d,
+                    PipelineMode::Camera3d,
                 false,
             );
         }
@@ -2622,7 +2626,7 @@ pub(crate) fn queue_effects(
                     distance: 0.0, // TODO
                 },
                 #[cfg(feature = "2d")]
-                PipelineMode::Camera3d,
+                    PipelineMode::Camera3d,
                 true,
             );
         }
@@ -2931,9 +2935,9 @@ impl Node for VfxSimulateNode {
                         //     &effects_meta.effect_cache.buffers()[batch.buffer_index as usize];
                         let Some(particles_bind_group) =
                             effect_bind_groups.particle_simulate(batch.buffer_index)
-                        else {
-                            continue;
-                        };
+                            else {
+                                continue;
+                            };
 
                         let item_size = batch.particle_layout.min_binding_size();
                         let item_count = batch.slice.end - batch.slice.start;
@@ -3063,9 +3067,9 @@ impl Node for VfxSimulateNode {
                     //     &effects_meta.effect_cache.buffers()[batch.buffer_index as usize];
                     let Some(particles_bind_group) =
                         effect_bind_groups.particle_simulate(batch.buffer_index)
-                    else {
-                        continue;
-                    };
+                        else {
+                            continue;
+                        };
 
                     let item_size = batch.particle_layout.size();
                     let item_count = batch.slice.end - batch.slice.start;

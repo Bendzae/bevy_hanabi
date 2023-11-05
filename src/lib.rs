@@ -128,10 +128,11 @@
 //! spawned together.
 //!
 //! ```
-//! # use bevy::{prelude::*, asset::HandleId};
+//! # use bevy::{prelude::*, asset::AssetId};
+//! use bevy::asset::AssetId;
 //! # use bevy_hanabi::prelude::*;
 //! # fn spawn_effect(mut commands: Commands) {
-//! #   let effect_handle = Handle::weak(HandleId::random::<EffectAsset>());
+//! #   let effect_handle = Handle::weak(AssetId::random::<EffectAsset>());
 //! // Configure the emitter to spawn 100 particles / second
 //! let spawner = Spawner::rate(100_f32.into());
 //!
@@ -665,8 +666,8 @@ impl ParticleEffect {
     ///
     /// ```
     /// # use bevy_hanabi::*;
-    /// # use bevy::asset::{Handle, HandleId};
-    /// # let asset = Handle::weak(HandleId::random::<EffectAsset>());
+    /// # use bevy::asset::{Handle, AssetId};
+    /// # let asset = Handle::weak(AssetId::random::<EffectAsset>());
     /// // Always render the effect in front of the default layer (z=0)
     /// let effect = ParticleEffect::new(asset).with_z_layer_2d(Some(0.1));
     /// ```
